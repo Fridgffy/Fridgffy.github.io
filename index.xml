@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Fridgffy&#39;s Blog</title>
+    <link>https://fridgffy.github.io/</link>
+    <description>Recent content on Fridgffy&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <managingEditor>dr.dciagun@gmail.com (Fridgffy)</managingEditor>
+    <webMaster>dr.dciagun@gmail.com (Fridgffy)</webMaster>
+    <copyright>2024 Fridgffy All rights reserved</copyright>
+    <lastBuildDate>Fri, 26 Jan 2024 20:54:17 +0800</lastBuildDate><atom:link href="https://fridgffy.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Cdn</title>
+      <link>https://fridgffy.github.io/blog/cdn/cdn/</link>
+      <pubDate>Fri, 26 Jan 2024 20:54:17 +0800</pubDate>
+      <author>dr.dciagun@gmail.com (Fridgffy)</author>
+      <guid>https://fridgffy.github.io/blog/cdn/cdn/</guid>
+      <description>&lt;p&gt;test 内容&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;绕过CDN找到真实IP地址&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; requests
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;res &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; requests&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;get(url&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;url)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;thi is a test!&lt;/p&gt;
+&lt;/blockquote&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
