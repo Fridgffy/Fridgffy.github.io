@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>渗透测试 on Fridgffy&#39;s Blog</title>
+    <link>https://fridgffy.github.io/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/</link>
+    <description>Recent content in 渗透测试 on Fridgffy&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <managingEditor>dr.dciagun@gmail.com (Fridgffy)</managingEditor>
+    <webMaster>dr.dciagun@gmail.com (Fridgffy)</webMaster>
+    <copyright>2024 Fridgffy All rights reserved</copyright>
+    <lastBuildDate>Sat, 27 Jan 2024 09:38:55 +0800</lastBuildDate><atom:link href="https://fridgffy.github.io/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>绕过CDN寻找真实IP</title>
+      <link>https://fridgffy.github.io/blog/%E7%BB%95%E8%BF%87cdn%E5%AF%BB%E6%89%BE%E7%9C%9F%E5%AE%9Eip/</link>
+      <pubDate>Sat, 27 Jan 2024 09:38:55 +0800</pubDate>
+      <author>dr.dciagun@gmail.com (Fridgffy)</author>
+      <guid>https://fridgffy.github.io/blog/%E7%BB%95%E8%BF%87cdn%E5%AF%BB%E6%89%BE%E7%9C%9F%E5%AE%9Eip/</guid>
+      <description>&lt;p&gt;自己整理的学习笔记，仅用于安全研究和学习，部分来源于网络&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;判断是否有cdn&#34;&gt;判断是否有CDN&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;在实施端口、漏扫等测试之前，需要判断是否为真实IP，是否使用了CDN或者其他代理等，避免无效操作、蜜罐、非目标站点&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;0x01-dig-或者-nslookup检测域名&#34;&gt;0x01 dig 或者 nslookup检测域名&lt;/h3&gt;
+&lt;p&gt;如果获取的DNS域名解析结果返回多个IP，一般都存在CDN
+如果IP地址是2个或者3个，并且这几个地址是同一地区的不同运营商的话，则很有可能这几个地址是服务器的出口地址&lt;/p&gt;
+&lt;h4 id=&#34;存在cdn&#34;&gt;存在CDN&lt;/h4&gt;
+&lt;h5 id=&#34;nslookup&#34;&gt;nslookup&lt;/h5&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;C:\Users\Users&amp;gt;nslookup baidu.com
+DNS request timed out.
+    timeout was 2 seconds.
+服务器:  UnKnown
+Address:  192.168.124.1
+
+非权威应答:
+DNS request timed out.
+    timeout was 2 seconds.
+名称:    baidu.com
+Addresses:  39.156.66.10
+          110.242.68.66
+&lt;/code&gt;&lt;/pre&gt;&lt;h5 id=&#34;dig&#34;&gt;dig&lt;/h5&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;└─# dig baidu.com
+
+; &amp;lt;&amp;lt;&amp;gt;&amp;gt; DiG 9.18.12-1-Debian &amp;lt;&amp;lt;&amp;gt;&amp;gt; baidu.com
+;; global options: +cmd
+;; Got answer:
+;; -&amp;gt;&amp;gt;HEADER&amp;lt;&amp;lt;- opcode: QUERY, status: NOERROR, id: 49842
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;baidu.com.                     IN      A
+
+;; ANSWER SECTION:
+baidu.com.              474     IN      A       39.156.66.10
+baidu.com.              474     IN      A       110.242.68.66
+
+;; Query time: 11 msec
+;; SERVER: 223.6.6.6#53(223.6.6.6) (UDP)
+;; WHEN: Sun Jan 28 20:53:03 EST 2024
+;; MSG SIZE  rcvd: 70
+&lt;/code&gt;&lt;/pre&gt;&lt;h5 id=&#34;结合ip地址&#34;&gt;结合IP地址&lt;/h5&gt;
+&lt;p&gt;IP地址只显示一个，但为CloudFlare公司的CDN节点IP&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;└─# dig dailyhighclub.com
+
+; &amp;lt;&amp;lt;&amp;gt;&amp;gt; DiG 9.18.12-1-Debian &amp;lt;&amp;lt;&amp;gt;&amp;gt; dailyhighclub.com
+;; global options: +cmd
+;; Got answer:
+;; -&amp;gt;&amp;gt;HEADER&amp;lt;&amp;lt;- opcode: QUERY, status: NOERROR, id: 22520
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;dailyhighclub.com.             IN      A
+
+;; ANSWER SECTION:
+dailyhighclub.com.      283     IN      A       23.227.38.32
+
+;; Query time: 23 msec
+;; SERVER: 223.6.6.6#53(223.6.6.6) (UDP)
+;; WHEN: Sun Jan 28 21:12:40 EST 2024
+;; MSG SIZE  rcvd: 62
+
+
+└─# nali 23.227.38.32
+23.227.38.32 [美国 CloudFlare公司CDN节点(shopify)]
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;0x02-多地点ping&#34;&gt;0x02 多地点ping&lt;/h3&gt;
+&lt;p&gt;如果没有使用CDN，只会显示一个IP地址，或者双线接入情况的两个不同运营商ip&lt;/p&gt;
+&lt;h4 id=&#34;在线网站&#34;&gt;在线网站&lt;/h4&gt;
+&lt;p&gt;&lt;a href=&#34;http://ping.chinaz.com/&#34;&gt;http://ping.chinaz.com/&lt;/a&gt;
+&lt;img src=&#34;https://fridgffy.github.io/images/cdn/chinaz.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;其他网站&#34;&gt;其他网站&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://ping.aizhan.com/&#34;&gt;https://ping.aizhan.com/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.webkaka.com/Ping.aspx&#34;&gt;http://www.webkaka.com/Ping.aspx&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.host-tracker.com/v3/check/&#34;&gt;https://www.host-tracker.com/v3/check/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.17ce.com/&#34;&gt;https://www.17ce.com/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;0x03-返回包信息&#34;&gt;0x03 返回包信息&lt;/h3&gt;
+&lt;h4 id=&#34;响应头&#34;&gt;响应头&lt;/h4&gt;
+&lt;p&gt;有时候响应头可能会存在CDN服务商信息&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;HTTP/2 200 OK
+Date: Mon, 29 Jan 2024 02:52:09 GMT
+Content-Type: text/html; charset=utf-8
+Cache-Control: private, max-age=0, must-revalidate, no-cache, no-store
+Display: orig_site_sol
+Expires: Sun, 28 Jan 2024 02:52:09 GMT
+Pagespeed: off
+Response: 200
+Strict-Transport-Security: max-age=31536000
+Vary: Accept-Encoding,User-Agent
+X-Ezoic-Cdn: Miss
+X-Middleton-Display: orig_site_sol
+X-Middleton-Response: 200
+X-Origin-Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate
+X-Sol: orig
+Cf-Cache-Status: DYNAMIC
+Report-To: {&amp;#34;endpoints&amp;#34;:[{&amp;#34;url&amp;#34;:&amp;#34;https:\/\/a.nel.cloudflare.com\/report\/v3?s=jjb9y3TNwQUh6B6VU8AjhDRwHInES0Nbg51N%2BtMG6ukBBcRsZI5cUWaXuySnlAhsDFNF6%2BRoUmis%2BCS8mxXM4WF9ajHEIhgS7rwxJbsp7Ac2%2B6mW40HxOvBswAZtzTfOZMnO&amp;#34;}],&amp;#34;group&amp;#34;:&amp;#34;cf-nel&amp;#34;,&amp;#34;max_age&amp;#34;:604800}
+Nel: {&amp;#34;success_fraction&amp;#34;:0,&amp;#34;report_to&amp;#34;:&amp;#34;cf-nel&amp;#34;,&amp;#34;max_age&amp;#34;:604800}
+Server: cloudflare
+Cf-Ray: 84ce2d6b7e5028fc-LAX
+Alt-Svc: h3=&amp;#34;:443&amp;#34;; ma=86400
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;可能会存在cdn服务商信息的地方&#34;&gt;可能会存在CDN服务商信息的地方&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;网站报错信息&lt;/li&gt;
+&lt;li&gt;网站源代码&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;0x04-在线检测网站&#34;&gt;0x04 在线检测网站&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.cdnplanet.com/tools/cdnfinder/&#34;&gt;https://www.cdnplanet.com/tools/cdnfinder/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://tools.ipip.net/cdn.php&#34;&gt;https://tools.ipip.net/cdn.php&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://cdn.chinaz.com/&#34;&gt;https://cdn.chinaz.com/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.17ce.com&#34;&gt;https://www.17ce.com&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;0x05-工具&#34;&gt;0x05 工具&lt;/h3&gt;
+&lt;h4 id=&#34;xcdn-httpsgithubcom3xp10itxcdn&#34;&gt;xcdn (&lt;a href=&#34;https://github.com/3xp10it/xcdn&#34;&gt;https://github.com/3xp10it/xcdn&lt;/a&gt;)&lt;/h4&gt;
+&lt;p&gt;要在可以ping通google的条件下使用&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;└─# python xcdn.py photo-ranker.com
+
+input http or https:https
+domain的http或https是:https
+进入获取真实ip函数,认为每个domain都是有cdn的情况来处理
+现在检测domain:photo-ranker.com是否有cdn
+has_cdn=1 from ns,and cdn is cloudflare
+检测到domain:photo-ranker.com的A记录不止一个,认为它有cdn
+现在从在线cloudflare类型cdn查询真实ip接口尝试获取真实ip
+现在尝试从domain:photo-ranker.com可能存在的phpinfo页面获取真实ip
+现在访问https://photo-ranker.com/info.php
+现在访问https://photo-ranker.com/phpinfo.php
+现在访问https://photo-ranker.com/test.php
+现在访问https://photo-ranker.com/l.php
+尝试从mx记录的c段中查找是否存在photo-ranker.com的真实ip
+尝试从mx记录中找和photo-ranker.com顶级域名相同的mx主机
+很遗憾,在下认为photo-ranker.com有cdn,但是目前在下的能力没能获取它的真实ip,当前函数将返回0
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;绕过cdn获取真实ip&#34;&gt;绕过CDN获取真实IP&lt;/h2&gt;
+&lt;h3 id=&#34;0x01-空间搜索引擎&#34;&gt;0x01 空间搜索引擎&lt;/h3&gt;
+&lt;h4 id=&#34;搜索网站图标&#34;&gt;搜索网站图标&lt;/h4&gt;
+&lt;h5 id=&#34;在搜索结果中直接点击搜索按钮&#34;&gt;在搜索结果中直接点击搜索按钮&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;https://fridgffy.github.io/images/cdn/icon.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h5 id=&#34;获取icon指纹哈希并搜索&#34;&gt;获取icon指纹哈希并搜索&lt;/h5&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; mmh3
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; requests
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; codecs
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;res &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; requests&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;get(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;https://domain.com/favicon.ico&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;icon  &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; codecs&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;encode(res&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;content,&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;base64&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hash &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; mmh3&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;hash(icon)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;搜索网站域名titleicp备案&#34;&gt;搜索网站域名/title/icp备案&lt;/h4&gt;
+&lt;h3 id=&#34;0x02-ping&#34;&gt;0x02 ping&lt;/h3&gt;
+&lt;h4 id=&#34;ping-子域名三级域名&#34;&gt;ping 子域名、三级域名&lt;/h4&gt;
+&lt;p&gt;CDN成本的问题，一些重要站点会采用cdn加速，而一些子域名则没有使用，一般情况下，一些子域名与主站的真实ip在同一c段或同一台服务器上，这时就可以通过发现子域名c段ip、端口信息，逐个探测定位主站真实ip地址&lt;/p&gt;
+&lt;h6 id=&#34;寻找子域名方法&#34;&gt;寻找子域名方法&lt;/h6&gt;
+&lt;ul&gt;
+&lt;li&gt;网站自身源码中出现的子域名&lt;/li&gt;
+&lt;li&gt;whois信息反查&lt;/li&gt;
+&lt;li&gt;利用证书查询
+&lt;ul&gt;
+&lt;li&gt;空间搜索引擎搜索证书&lt;/li&gt;
+&lt;li&gt;在线网站
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://search.censys.io/&#34;&gt;https://search.censys.io/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://crt.sh/&#34;&gt;https://crt.sh/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;搜索引擎
+&lt;ul&gt;
+&lt;li&gt;Google&lt;/li&gt;
+&lt;li&gt;空间搜索引擎&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;搜索网站logo&lt;/li&gt;
+&lt;li&gt;在线网站
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://dnsdumpster.com/&#34;&gt;https://dnsdumpster.com/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://x.threatbook.cn/&#34;&gt;https://x.threatbook.cn/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://tool.chinaz.com/subdomain/&#34;&gt;http://tool.chinaz.com/subdomain/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.virustotal.com/&#34;&gt;https://www.virustotal.com/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://subdomainfinder.c99.nl/index.php&#34;&gt;https://subdomainfinder.c99.nl/index.php&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://seranking.com/free-tools/subdomain-finder.html&#34;&gt;https://seranking.com/free-tools/subdomain-finder.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&amp;hellip;&amp;hellip;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;其他工具
+&lt;ul&gt;
+&lt;li&gt;oneforall&lt;/li&gt;
+&lt;li&gt;ksubdomain&lt;/li&gt;
+&lt;li&gt;subdomainBurte&lt;/li&gt;
+&lt;li&gt;sublist3r&lt;/li&gt;
+&lt;li&gt;esd&lt;/li&gt;
+&lt;li&gt;findomain&lt;/li&gt;
+&lt;li&gt;&amp;hellip;&amp;hellip;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;直接ping根域名&#34;&gt;直接ping根域名&lt;/h4&gt;
+&lt;p&gt;直接ping domain.com 而不是 ping &lt;a href=&#34;https://www.domain.com&#34;&gt;www.domain.com&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;0x03-国外冷门dns解析&#34;&gt;0x03 国外冷门DNS解析&lt;/h3&gt;
+&lt;p&gt;部分国内cdn广商只做了国内的线路，没有铺设国外线路，可以通过海外cdn解析直接获取真实IP&lt;/p&gt;
+&lt;h6 id=&#34;在线网站-1&#34;&gt;在线网站&lt;/h6&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://check-host.net/check-ping&#34;&gt;https://check-host.net/check-ping&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://get-site-ip.com/&#34;&gt;https://get-site-ip.com/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h6 id=&#34;国外dns服务器&#34;&gt;国外DNS服务器&lt;/h6&gt;
+&lt;ul&gt;
+&lt;li&gt;209.244.0.3&lt;/li&gt;
+&lt;li&gt;64.6.64.6&lt;/li&gt;
+&lt;li&gt;156.154.70.1&lt;/li&gt;
+&lt;li&gt;&amp;hellip;&amp;hellip;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;0x04-dns历史绑定记录&#34;&gt;0x04 DNS历史绑定记录&lt;/h3&gt;
+&lt;p&gt;查询 DNS 历史记录，看是否能探测到使用 CDN 之前的 IP&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://securitytrails.com/&#34;&gt;https://securitytrails.com/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://dnsdb.io/zh-cn/&#34;&gt;https://dnsdb.io/zh-cn/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://x.threatbook.cn/&#34;&gt;https://x.threatbook.cn/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://tools.ipip.net/cdn.php&#34;&gt;https://tools.ipip.net/cdn.php&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&amp;hellip;&amp;hellip;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;0x05-mx记录&#34;&gt;0x05 MX记录&lt;/h3&gt;
+&lt;p&gt;如果网站的web服务和邮件服务部署在同一台服务器和IP上，这时候MX记录中就会有服务器IP地址&lt;/p&gt;
+&lt;h3 id=&#34;0x06-邮件服务&#34;&gt;0x06 邮件服务&lt;/h3&gt;
+&lt;p&gt;适用于自己架设邮件服务器的大型网站，一般邮件系统都在内部，如果中间未经任何数据处理和防护措施，在向外部用户发送邮件时邮件头部的源码中会包含此邮件服务器的真实IP地址&lt;/p&gt;
+&lt;h4 id=&#34;功能点&#34;&gt;功能点&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;邮件发送&lt;/li&gt;
+&lt;li&gt;RSS邮件订阅&lt;/li&gt;
+&lt;li&gt;找回密码&lt;/li&gt;
+&lt;li&gt;产品更新的邮箱推送&lt;/li&gt;
+&lt;li&gt;某业务执行后的邮箱通知&lt;/li&gt;
+&lt;li&gt;邮箱注册、激活处&lt;/li&gt;
+&lt;li&gt;邮箱找回密码处&lt;/li&gt;
+&lt;li&gt;员工邮箱、邮件管理平台等入口处的忘记密码&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;0x07-网站ssl证书&#34;&gt;0x07 网站SSL证书&lt;/h3&gt;
+&lt;h5 id=&#34;censys反查指纹hash&#34;&gt;Censys反查指纹hash&lt;/h5&gt;
+&lt;p&gt;使用Certificates搜索域名的时候，会出现一堆有效证书和无效证书，反查SSL证书指纹hash，可能会找到IP地址
+并不是有效的证书才是有价值的，无效的证书中也会有很多服务器配置错误依然保留着的信息&lt;/p&gt;
+&lt;h5 id=&#34;直接搜索证书&#34;&gt;直接搜索证书&lt;/h5&gt;
+&lt;p&gt;&lt;code&gt;cert=&amp;quot;*.domain.com&lt;/code&gt;&lt;/p&gt;
+&lt;h3 id=&#34;0x08-网站漏洞&#34;&gt;0x08 网站漏洞&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;敏感信息泄露&lt;/li&gt;
+&lt;li&gt;SSRF、XXE等发送带外数据&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;0x09-其他方法&#34;&gt;0x09 其他方法&lt;/h3&gt;
+&lt;h4 id=&#34;ddos&#34;&gt;DDOS&lt;/h4&gt;
+&lt;p&gt;CDN开通时有流量限制，可以通过 DDOS 来消耗CDN的流量，只需要把流量打光，就会回滚到原始 ip，有可能会影响到目标网站&lt;/p&gt;
+&lt;h4 id=&#34;抓取app流量分析是否存在网站ip地址&#34;&gt;抓取APP流量分析是否存在网站IP地址&lt;/h4&gt;
+&lt;h4 id=&#34;利用历史域名&#34;&gt;利用历史域名&lt;/h4&gt;
+&lt;h2 id=&#34;验证ip地址&#34;&gt;验证IP地址&lt;/h2&gt;
+&lt;p&gt;通过修改hosts文件，将域名和IP绑定，访问网址，如果可以打开目标网站说明是真是IP地址&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
